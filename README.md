@@ -77,6 +77,8 @@ contains only `a-z`, `0-9` and single `_` separators.
 | `maxRetries`            | `Int`            | `3`                            | 1–10      | Failed passes before a retry warning is logged |
 | `sessionTimeoutMinutes` | `Int`            | `30`                           | 1–10080   | Inactivity window before a new session starts  |
 | `maxQueueSize`          | `Int`            | `1000`                         | 100–10000 | Undelivered events kept on device              |
+| `experimentIds`         | `[String]`       | `[]`                           |           | Experiments this app takes part in (see [A/B Testing](#ab-testing)) |
+| `experimentsBaseUrl`    | `String`         | `https://experiments-api.b2metric.com` |   | Override only for a test or staging endpoint   |
 
 Out-of-range numeric values are clamped to the nearest valid value rather
 than throwing, so a misconfiguration degrades instead of crashing your app.
@@ -170,6 +172,69 @@ B2MAnalytics.shared.trackPushOpened(userInfo: response.notification.request.cont
 ```
 
 The notification payload's fields become the event's properties directly.
+
+### A/B testing
+
+Show different variants to different devices and let B2Metric decide who sees
+what. Experiments are created in your B2Metric panel; your app reads the
+assignment and renders accordingly.
+
+Assignments are fetched when the SDK starts, stored on the device, and read
+synchronously — there is no loading state to thread through your UI.
+
+List the experiments your app takes part in:
+
+```swift
+B2MAnalytics.shared.start(
+    apiKey: "YOUR_API_KEY",
+    appIdentifier: "my_app",
+    experimentIds: ["YOUR_EXPERIMENT_ID"]
+)
+```
+
+In SwiftUI, hold a `B2MExperiments` near the root and read a group from it.
+Views re-render on their own when assignments change:
+
+```swift
+@main
+struct MyApp: App {
+    @StateObject private var experiments = B2MExperiments()
+
+    var body: some Scene {
+        WindowGroup {
+            RootView().environmentObject(experiments)
+        }
+    }
+}
+
+struct CheckoutButton: View {
+    @EnvironmentObject private var experiments: B2MExperiments
+
+    var body: some View {
+        if experiments.group(for: "YOUR_EXPERIMENT_ID") == "YOUR_GROUP_ID" {
+            BuyNowButton()
+        } else {
+            ContinueToCheckoutButton()
+        }
+    }
+}
+```
+
+In UIKit, read it directly — it returns immediately:
+
+```swift
+let groupId = B2MAnalytics.shared.experimentGroupId(for: "YOUR_EXPERIMENT_ID")
+```
+
+**Every experiment needs a default.** The SDK never blocks rendering — when it
+has no answer it returns `nil`, whether the device is outside the experiment's
+audience, the experiment has ended, or the first answer has not arrived yet.
+Keep every identifier in one file that resolves `nil` to a default, so no call
+site can forget it.
+
+> 📖 **[Full A/B testing guide →](docs/experiments.md)** — finding your group
+> identifiers, verifying the integration, offline and first-launch behaviour,
+> identified users, cleaning up a finished experiment, and troubleshooting.
 
 ### Screen tracking
 
