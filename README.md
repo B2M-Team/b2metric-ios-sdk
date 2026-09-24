@@ -173,6 +173,30 @@ B2MAnalytics.shared.trackPushOpened(userInfo: response.notification.request.cont
 
 The notification payload's fields become the event's properties directly.
 
+### Silent control messages
+
+B2Metric sends silent background pushes (for example an uninstall-detection
+`registration_probe`, marked by a top-level `b2m_control` key) that are never
+meant for the user. iOS does not display them, and `trackPushOpened` ignores
+them, so they never become a `push_opened` event even if your app calls it for
+every incoming push.
+
+If your app handles background pushes itself in
+`application(_:didReceiveRemoteNotification:fetchCompletionHandler:)`, return
+early for control messages:
+
+```swift
+func application(_ application: UIApplication,
+                 didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+                 fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    if B2MAnalytics.isControlMessage(userInfo) {
+        completionHandler(.noData)
+        return
+    }
+    // ... your own handling of real pushes
+}
+```
+
 ### A/B testing
 
 Show different variants to different devices and let B2Metric decide who sees
