@@ -10,8 +10,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "B2MAnalyticsSDK",
-            url: "https://github.com/B2M-Team/b2metric-ios-sdk/releases/download/2.1.0/B2MAnalyticsSDK.xcframework.zip",
-            checksum: "dfb13281dfbe711c83e1ed5c6ac1210cee43a8ad89c4b7a7617d99f2dd2e4026"
+            url: "https://github.com/B2M-Team/b2metric-ios-sdk/releases/download/2.2.0/B2MAnalyticsSDK.xcframework.zip",
+            checksum: "c7fa8d0c68681ff6310cce3875e2d21ae3efbde1382325956b32b75d0fa5fb75"
         )
     ]
 )
