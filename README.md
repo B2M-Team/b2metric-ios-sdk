@@ -176,10 +176,13 @@ The notification payload's fields become the event's properties directly.
 ### Silent control messages
 
 B2Metric sends silent background pushes (for example an uninstall-detection
-`registration_probe`, marked by a top-level `b2m_control` key) that are never
-meant for the user. iOS does not display them, and `trackPushOpened` ignores
-them, so they never become a `push_opened` event even if your app calls it for
-every incoming push.
+probe) that are never meant for the user. They carry a top-level `IsSilent`
+key with the string value `"1"`, e.g.
+`{"aps":{"content-available":1},"IsSilent":"1"}`; older backends mark them
+with a top-level `b2m_control` key instead, and both are recognised (the
+`IsSilent` marker from 2.2.1). iOS does not display them, and
+`trackPushOpened` ignores them, so they never become a `push_opened` event
+even if your app calls it for every incoming push.
 
 If your app handles background pushes itself in
 `application(_:didReceiveRemoteNotification:fetchCompletionHandler:)`, return
